@@ -1,11 +1,20 @@
+// types/event.type.ts
+export type EventSeverity = "critical" | "warning" | "info"
+
+export type EventType =
+  | "container_crashed"
+  | "container_restarted"
+  | "server_offline"
+  | "high_cpu"
+  | "high_memory"
+  | "disk_full"
+
 export interface Event {
-  id: string
-  serverId: string
+  id: number
+  serverId: number
   serverName: string
-  type: "container_crashed" | "container_restarted" | "server_offline" | "high_cpu" | "high_memory" | "disk_full"
-  severity: "critical" | "warning" | "info"
+  type: EventType
+  severity: EventSeverity
   message: string
-  createdAt: Date
-  
-  
+  createdAt: string 
 }

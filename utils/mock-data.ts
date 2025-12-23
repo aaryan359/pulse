@@ -88,8 +88,12 @@ export function formatUptime(seconds: number): string {
   return `${hours}h ${minutes}m`
 }
 
-export function formatTimeAgo(date: Date): string {
+export function formatTimeAgo(dateString: string): string {
+  const date = new Date(dateString)
+  if (isNaN(date.getTime())) return "--"
+
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000)
+
   if (seconds < 60) return "Just now"
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
   if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
