@@ -11,11 +11,12 @@ export const useServerWebSocket = (
   useEffect(() => {
     if (!serverId) return;
 
-    const ws = new WebSocket(WS_URL);
+    // CORRECT WS ENDPOINT
+    const ws = new WebSocket(`${WS_URL}/ws/realtime`);
     wsRef.current = ws;
 
     ws.onopen = () => {
-      console.log("✅ WS connected");
+      console.log("Realtime WS connected");
       ws.send(
         JSON.stringify({
           type: "SUBSCRIBE_SERVER",
@@ -35,12 +36,12 @@ export const useServerWebSocket = (
       }
     };
 
-    ws.onerror = () => {
-      console.warn("WebSocket error");
+    ws.onerror = (e) => {
+      console.warn("WebSocket error", e);
     };
 
     ws.onclose = () => {
-      console.log("🔌 WebSocket closed");
+      console.log(" Realtime WS closed");
     };
 
     return () => {

@@ -26,59 +26,58 @@ export default function ServerDetailScreen() {
 	const [server, setServer] = useState<Server | null>(null);
 	const [snapshot, setSnapshot] = useState<ServerSnapshot | null>(null);
 	const [loading, setLoading] = useState(true);
-const [rateLimited, setRateLimited] = useState(false);
+	const [rateLimited, setRateLimited] = useState(false);
+
+	
 	/* ---------- Initial load ---------- */
 	useEffect(() => {
 		if (!id) return;
 
 		const loadServerData = async () => {
-  try {
-    setLoading(true);
+			try {
+				setLoading(true);
 
-    const res = await ServerService.getOverview(id);
-    const data = res.data.data;
+				const res = await ServerService.getOverview(id);
+				const data = res.data.data;
 
-    setServer(data);
-    setSnapshot(data.snapshot ?? null);
+				setServer(data);
+				setSnapshot(data.snapshot ?? null);
+			} catch (err: any) {
+				if (axios.isAxiosError(err)) {
+					const status = err.response?.status;
 
-  }  catch (err: any) {
-  if (axios.isAxiosError(err)) {
-    const status = err.response?.status;
+					if (status === 429) {
+						setRateLimited(true);
 
-    if (status === 429) {
-      setRateLimited(true);
+						Toast.show({
+							type: "info",
+							text1: "Too many requests",
+							text2: "You are being rate limited. Live data will continue via WebSocket.",
+						});
 
-      Toast.show({
-        type: "info",
-        text1: "Too many requests",
-        text2: "You are being rate limited. Live data will continue via WebSocket.",
-      });
+						// IMPORTANT: do NOT treat as fatal
+						return;
+					}
 
-      // IMPORTANT: do NOT treat as fatal
-      return;
-    }
+					if (status === 404) {
+						Toast.show({
+							type: "error",
+							text1: "Server not found",
+						});
+						router.back();
+						return;
+					}
+				}
 
-    if (status === 404) {
-      Toast.show({
-        type: "error",
-        text1: "Server not found",
-      });
-      router.back();
-      return;
-    }
-  }
-
-  Toast.show({
-    type: "error",
-    text1: "Network error",
-    text2: "Unable to load server data",
-  });
-} finally {
-  setLoading(false);
-}
-
-};
-
+				Toast.show({
+					type: "error",
+					text1: "Network error",
+					text2: "Unable to load server data",
+				});
+			} finally {
+				setLoading(false);
+			}
+		};
 
 		loadServerData();
 	}, [id]);
@@ -101,17 +100,19 @@ const [rateLimited, setRateLimited] = useState(false);
 	}
 
 	if (!server && !loading && !rateLimited) {
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text style={{ color: colors.destructive }}>Server not found</Text>
-        <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 16 }}>
-          <Text style={{ color: colors.primary }}>Go Back</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
-  );
-}
+		return (
+			<SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+				<View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+					<Text style={{ color: colors.destructive }}>Server not found</Text>
+					<TouchableOpacity
+						onPress={() => router.back()}
+						style={{ marginTop: 16 }}>
+						<Text style={{ color: colors.primary }}>Go Back</Text>
+					</TouchableOpacity>
+				</View>
+			</SafeAreaView>
+		);
+	}
 
 	const handleBack = () => {
 		if (router.canGoBack()) {
@@ -140,10 +141,13 @@ const [rateLimited, setRateLimited] = useState(false);
 
 					<View style={styles.headerRow}>
 						<View>
-							<Text style={[styles.title, { color: colors.foreground }]}>  {server?.hostname ?? "Server"}</Text>
+							<Text style={[styles.title, { color: colors.foreground }]}>
+								{" "}
+								{server?.hostname ?? "Server"}
+							</Text>
 							<View style={styles.metaRow}>
 								<Text style={styles.metaText}>
-									{(server?.environment ?? "--")} • {(server?.os ?? "--")}
+									{server?.environment ?? "--"} • {server?.os ?? "--"}
 								</Text>
 							</View>
 						</View>
@@ -176,9 +180,7 @@ const [rateLimited, setRateLimited] = useState(false);
 				{/* Render tab content */}
 				{tab === "overview" && (
 					<View>
-						<OverviewTab
-							snapshot={snapshot}
-						/>
+						<OverviewTab snapshot={snapshot} />
 					</View>
 				)}
 
