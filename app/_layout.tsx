@@ -8,6 +8,8 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { Provider } from "react-redux";
 
@@ -46,23 +48,26 @@ function AppContent() {
 				<Stack.Screen name='(auth)' />
 				<Stack.Screen name='(tabs)' />
 			</Stack>
-
-			<Toast
-				config={toastConfig}
-				position='top'
-				visibilityTime={4000}
-				autoHide
-			/>
 		</>
 	);
 }
 
 export default function RootLayout() {
 	return (
-		<ThemeProvider>
-			<Provider store={store}>
-				<AppContent />
-			</Provider>
-		</ThemeProvider>
+		<GestureHandlerRootView style={{ flex: 1 }}>
+			<ThemeProvider>
+				<SafeAreaProvider>
+					<Provider store={store}>
+						<AppContent />
+						<Toast
+							config={toastConfig}
+							position='top'
+							visibilityTime={3000}
+							autoHide
+						/>
+					</Provider>
+				</SafeAreaProvider>
+			</ThemeProvider>
+		</GestureHandlerRootView>
 	);
 }

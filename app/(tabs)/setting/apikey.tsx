@@ -1,491 +1,501 @@
 import * as Clipboard from "expo-clipboard";
 import React, { useEffect, useState } from "react";
-import { Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+	Modal,
+	ScrollView,
+	StyleSheet,
+	Text,
+	TextInput,
+	TouchableOpacity,
+	View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { GlassCard } from "@/components/ui/GlassCard";
 import { useTheme } from "@/theme/useTheme";
 
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { createApiKey, fetchApiKeys, revokeApiKeyThunk } from "@/redux/slices/apikey/key.thunk";
+import {
+	createApiKey,
+	fetchApiKeys,
+	revokeApiKeyThunk,
+} from "@/redux/slices/apikey/key.thunk";
 import { router } from "expo-router";
-import { AlertTriangle, ArrowLeft, Copy, Key, Plus, RotateCcw, Shield, Trash2, X } from "lucide-react-native";
+import {
+	AlertTriangle,
+	ArrowLeft,
+	Copy,
+	Key,
+	Plus,
+	RotateCcw,
+	Shield,
+	Trash2,
+	X,
+} from "lucide-react-native";
 import Toast from "react-native-toast-message";
 
 export default function ApiKeysScreen() {
-	const dispatch = useAppDispatch();
-	const { keys, loading } = useAppSelector((s) => s.apikey);
+  const dispatch = useAppDispatch();
+  const { keys } = useAppSelector((s) => s.apikey);
+  const { colors } = useTheme();
 
-	const { colors } = useTheme();
+  const [showCreate, setShowCreate] = useState(false);
+  const [newKeyName, setNewKeyName] = useState("");
+  const [confirmRevoke, setConfirmRevoke] = useState<string | null>(null);
 
-	const [showCreate, setShowCreate] = useState(false);
-	const [newKeyName, setNewKeyName] = useState("");
+  useEffect(() => {
+    dispatch(fetchApiKeys());
+  }, []);
 
-	const [confirmRevoke, setConfirmRevoke] = useState<string | null>(null);
+  const handleCreateKey = async () => {
+    const res = await dispatch(createApiKey(newKeyName)).unwrap();
 
-	useEffect(() => {
-		dispatch(fetchApiKeys());
-	}, []);
+    Toast.show({
+      type: "success",
+      text1: "API key created",
+      text2: "Copied to clipboard. This won’t be shown again.",
+    });
 
-	console.log(" keys form backend ", keys);
+    await Clipboard.setStringAsync(res);
+    setShowCreate(false);
+    setNewKeyName("");
+    dispatch(fetchApiKeys());
+  };
 
-	const handleCreateKey = async () => {
-		const res = await dispatch(createApiKey(newKeyName)).unwrap();
+  const handleRevoke = async (id: number) => {
+    await dispatch(revokeApiKeyThunk(id));
+    Toast.show({
+      type: "success",
+      text1: "API key revoked",
+    });
+    setConfirmRevoke(null);
+  };
 
-		Toast.show({
-			type: "success",
-			text1: "API Key created",
-			text2: "Copy it now, it won’t be shown again",
-		});
+  return (
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
+      <ScrollView contentContainerStyle={styles.container}>
+        {/* Back */}
+        <TouchableOpacity onPress={() => router.back()} style={styles.back}>
+          <ArrowLeft size={18} color={colors.primary} />
+          <Text style={styles.backText}>Back</Text>
+        </TouchableOpacity>
 
-		await Clipboard.setStringAsync(res);
-		setShowCreate(false);
-		setNewKeyName("");
+        {/* Header */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.title}>API Keys</Text>
+            <Text style={styles.subtitle}>Manage your agent access keys</Text>
+          </View>
 
-		dispatch(fetchApiKeys());
-	};
+          <TouchableOpacity
+            onPress={() => setShowCreate(true)}
+            style={[styles.addBtn, { backgroundColor: colors.primary }]}
+          >
+            <Plus size={18} color={colors.primaryForeground} />
+          </TouchableOpacity>
+        </View>
 
-	const handleRevoke = async (id: number) => {
-		await dispatch(revokeApiKeyThunk(id));
-		Toast.show({
-			type: "success",
-			text1: "API Key revoked",
-		});
-		setConfirmRevoke(null);
-	};
+        {/* Security Notice */}
+        <View style={styles.section}>
+          <GlassCard>
+            <View style={styles.securityRow}>
+              <Shield size={20} color={colors.statusWarning} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.securityTitle}>Keep your keys secure</Text>
+                <Text style={styles.securityText}>
+                  Never share API keys or commit them to version control. Rotate
+                  keys regularly.
+                </Text>
+              </View>
+            </View>
+          </GlassCard>
+        </View>
 
-	return (
-		<SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
-			<ScrollView contentContainerStyle={styles.container}>
-				<TouchableOpacity
-					onPress={() => router.back()}
-					style={styles.back}>
-					<ArrowLeft
-						size={18}
-						color={colors.primary}
-					/>
-					<Text style={{ color: colors.mutedForeground }}>Back</Text>
-				</TouchableOpacity>
-				{/* Header */}
-				<View style={styles.header}>
-					<View>
-						<Text style={[styles.title, { color: colors.foreground }]}>API Keys</Text>
-						<Text style={{ color: colors.mutedForeground, fontSize: 13 }}>Manage your agent keys</Text>
-					</View>
+        {/* Keys List */}
+        <View style={styles.list}>
+          {keys.map((key) => {
+            const active = !key.revoked;
 
-					<TouchableOpacity
-						onPress={() => setShowCreate(true)}
-						style={[styles.addBtn, { backgroundColor: colors.primary }]}>
-						<Plus
-							size={18}
-							color={colors.primaryForeground}
-						/>
-					</TouchableOpacity>
-				</View>
+            return (
+              <GlassCard key={key.id.toString()}>
+                <View style={styles.keyHeader}>
+                  <View style={styles.keyNameRow}>
+                    <Key
+                      size={16}
+                      color={active ? colors.primary : "#6b7280"}
+                    />
+                    <Text style={styles.keyName}>{key.name}</Text>
+                  </View>
 
-				{/* Security notice */}
-				<View style={styles.section}>
-					<GlassCard>
-						<View style={styles.securityRow}>
-							<Shield
-								size={20}
-								color={colors.statusWarning}
-							/>
-							<View style={{ flex: 1 }}>
-								<Text style={[styles.securityTitle, { color: colors.foreground }]}>
-									Keep your keys secure
-								</Text>
-								<Text style={styles.securityText}>
-									Never share your API keys or commit them to version control. Rotate keys
-									regularly.
-								</Text>
-							</View>
-						</View>
-					</GlassCard>
-				</View>
+                  <View
+                    style={[
+                      styles.statusPill,
+                      {
+                        backgroundColor: active
+                          ? "rgba(34,197,94,0.15)"
+                          : "rgba(107,114,128,0.15)",
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 11,
+                        fontWeight: "600",
+                        color: active ? "#22c55e" : "#6b7280",
+                      }}
+                    >
+                      {key.status}
+                    </Text>
+                  </View>
+                </View>
 
-				{/* Keys */}
-				<View style={styles.list}>
-					{keys.map((key) => {
-						const active = !key.revoked;
+                {/* Masked key */}
+                <View style={styles.keyRow}>
+                  <Text style={styles.keyValue}>•••• •••• •••• ••••</Text>
+                  <TouchableOpacity
+                    onPress={() =>
+                      Toast.show({
+                        type: "info",
+                        text1: "Key value hidden",
+                        text2: "You can only copy it at creation time",
+                      })
+                    }
+                  >
+                    <Copy size={16} color="#9ca3af" />
+                  </TouchableOpacity>
+                </View>
 
-						return (
-							<GlassCard key={key.id.toString()}>
-								<View style={styles.keyHeader}>
-									<View style={styles.keyNameRow}>
-										<Key
-											size={16}
-											color={active ? colors.primary : colors.mutedForeground}
-										/>
-										<Text style={{ color: colors.foreground, fontWeight: "600" }}>
-											{key.name}
-										</Text>
-									</View>
+                {active && (
+                  <View style={styles.actionsRow}>
+                    <TouchableOpacity style={styles.rotateBtn}>
+                      <RotateCcw size={14} color="#e5e7eb" />
+                      <Text style={styles.actionText}>Rotate</Text>
+                    </TouchableOpacity>
 
-									<View
-										style={[
-											styles.statusPill,
-											{
-												backgroundColor: active
-													? `${colors.statusOnline}22`
-													: `${colors.statusOffline}22`,
-											},
-										]}>
-										<Text
-											style={{
-												fontSize: 11,
-												color: active
-													? colors.statusOnline
-													: colors.statusOffline,
-											}}>
-											{key.status}
-										</Text>
-									</View>
-								</View>
+                    <TouchableOpacity
+                      style={styles.revokeBtn}
+                      onPress={() => setConfirmRevoke(key.id.toString())}
+                    >
+                      <Trash2 size={14} color="#ef4444" />
+                      <Text style={styles.revokeText}>Revoke</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </GlassCard>
+            );
+          })}
+        </View>
+      </ScrollView>
 
-								{/* Key row */}
-								<View style={[styles.keyRow, { backgroundColor: colors.muted + "55" }]}>
-									<Text style={styles.keyValue}>••••••••••••••••••••••••••••••</Text>
+      {/* Create Modal */}
+      <Modal transparent visible={showCreate} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <GlassCard style={styles.modal}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Create API Key</Text>
+              <TouchableOpacity onPress={() => setShowCreate(false)}>
+                <X size={20} color="#9ca3af" />
+              </TouchableOpacity>
+            </View>
 
-									<TouchableOpacity
-										onPress={() =>
-											Toast.show({
-												type: "info",
-												text1: "Coming soon",
-											})
-										}>
-										<Copy
-											size={16}
-											color={colors.mutedForeground}
-										/>
-									</TouchableOpacity>
-								</View>
+            <TextInput
+              placeholder="Key name (e.g. Production Agent)"
+              placeholderTextColor="#9ca3af"
+              value={newKeyName}
+              onChangeText={setNewKeyName}
+              style={styles.input}
+            />
 
-								{/* <View style={styles.metaRow}>
-									<Text style={styles.metaText}>Created {formatTimeAgo(key.createdAt)}</Text>
-									<Text style={styles.metaText}>
-										Last used: {key.lastUsed ? formatTimeAgo(key.lastUsed) : "Never"}
-									</Text>
-								</View> */}
+            <TouchableOpacity
+              disabled={!newKeyName.trim()}
+              onPress={handleCreateKey}
+              style={[
+                styles.createBtn,
+                { backgroundColor: colors.primary },
+              ]}
+            >
+              <Text style={styles.createBtnText}>Generate Key</Text>
+            </TouchableOpacity>
+          </GlassCard>
+        </View>
+      </Modal>
 
-								{active && (
-									<View style={styles.actionsRow}>
-										<TouchableOpacity style={styles.rotateBtn}>
-											<RotateCcw
-												size={14}
-												color={colors.foreground}
-											/>
-											<Text style={styles.actionText}>Rotate</Text>
-										</TouchableOpacity>
+      {/* Revoke Modal */}
+      <Modal transparent visible={!!confirmRevoke} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <GlassCard style={styles.modal}>
+            <View style={styles.revokeHeader}>
+              <AlertTriangle size={22} color="#ef4444" />
+              <Text style={styles.modalTitle}>Revoke API Key</Text>
+            </View>
 
-										<TouchableOpacity
-											style={styles.revokeBtn}
-											onPress={() => setConfirmRevoke(key.id.toString())}>
-											<Trash2
-												size={14}
-												color={colors.statusOffline}
-											/>
-											<Text style={{ color: colors.statusOffline, fontSize: 12 }}>
-												Revoke
-											</Text>
-										</TouchableOpacity>
-									</View>
-								)}
-							</GlassCard>
-						);
-					})}
-				</View>
-			</ScrollView>
+            <Text style={styles.revokeWarning}>
+              This action cannot be undone. Any agents using this key will lose
+              access immediately.
+            </Text>
 
-			{/* Create modal */}
-			<Modal
-				transparent
-				visible={showCreate}
-				animationType='fade'>
-				<View style={styles.modalOverlay}>
-					<GlassCard style={styles.modal}>
-						<View style={styles.modalHeader}>
-							<Text style={[styles.modalTitle, { color: colors.foreground }]}>Create API Key</Text>
-							<TouchableOpacity onPress={() => setShowCreate(false)}>
-								<X
-									size={20}
-									color={colors.mutedForeground}
-								/>
-							</TouchableOpacity>
-						</View>
+            <View style={styles.revokeActions}>
+              <TouchableOpacity
+                style={styles.cancelBtn}
+                onPress={() => setConfirmRevoke(null)}
+              >
+                <Text style={styles.cancelText}>Cancel</Text>
+              </TouchableOpacity>
 
-						<TextInput
-							placeholder='Key name (e.g. Production Agent)'
-							placeholderTextColor={colors.mutedForeground}
-							value={newKeyName}
-							onChangeText={setNewKeyName}
-							style={[styles.input, { color: colors.foreground, backgroundColor: colors.muted }]}
-						/>
-
-						<TouchableOpacity
-							disabled={!newKeyName.trim()}
-							onPress={handleCreateKey}
-							style={[styles.createBtn, { backgroundColor: colors.primary }]}>
-							<Text style={{ color: colors.primaryForeground, fontWeight: "600" }}>Generate Key</Text>
-						</TouchableOpacity>
-					</GlassCard>
-				</View>
-			</Modal>
-
-			{/* Revoke modal */}
-			<Modal
-				transparent
-				visible={!!confirmRevoke}
-				animationType='fade'>
-				<View style={styles.modalOverlay}>
-					<GlassCard style={styles.modal}>
-						<View style={styles.revokeHeader}>
-							<AlertTriangle
-								size={22}
-								color={colors.statusOffline}
-							/>
-							<Text style={[styles.modalTitle, { color: colors.foreground }]}>Revoke API Key</Text>
-						</View>
-
-						<Text style={styles.revokeText}>
-							This action cannot be undone. Any agents using this key will immediately lose access.
-						</Text>
-
-						<View style={styles.revokeActions}>
-							<TouchableOpacity
-								style={styles.cancelBtn}
-								onPress={() => setConfirmRevoke(null)}>
-								<Text style={{ color: colors.foreground }}>Cancel</Text>
-							</TouchableOpacity>
-
-							<TouchableOpacity
-								style={[styles.confirmBtn, { backgroundColor: colors.statusOffline }]}
-								onPress={() => handleRevoke(Number(confirmRevoke)!)}>
-								<Text style={{ color: "#fff", fontWeight: "600" }}>Revoke Key</Text>
-							</TouchableOpacity>
-						</View>
-					</GlassCard>
-				</View>
-			</Modal>
-		</SafeAreaView>
-	);
+              <TouchableOpacity
+                style={styles.confirmBtn}
+                onPress={() => handleRevoke(Number(confirmRevoke))}
+              >
+                <Text style={styles.confirmText}>Revoke Key</Text>
+              </TouchableOpacity>
+            </View>
+          </GlassCard>
+        </View>
+      </Modal>
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
-	safe: {
-		flex: 1,
-		marginTop: 20,
-	},
+  safe: { flex: 1 },
 
-	container: {
-		paddingBottom: 96,
-	},
-	back: { flexDirection: "row", gap: 6, marginTop: 10 },
+  container: {
+    paddingBottom: 96,
+  },
 
-	/* Header */
-	header: {
-		padding: 16,
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-	},
+  back: {
+    flexDirection: "row",
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+  },
 
-	title: {
-		fontSize: 24,
-		fontWeight: "700",
-	},
+  backText: {
+    color: "#9ca3af",
+    fontSize: 13,
+  },
 
-	addBtn: {
-		width: 42,
-		height: 42,
-		borderRadius: 21,
-		alignItems: "center",
-		justifyContent: "center",
-	},
+  header: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
 
-	/* Sections */
-	section: {
-		paddingHorizontal: 16,
-		marginBottom: 12,
-	},
+  title: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#f9fafb",
+  },
 
-	list: {
-		paddingHorizontal: 16,
-		gap: 12,
-	},
+  subtitle: {
+    fontSize: 13,
+    color: "#9ca3af",
+  },
 
-	/* Security card */
-	securityRow: {
-		flexDirection: "row",
-		gap: 12,
-		alignItems: "flex-start",
-	},
+  addBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
-	securityTitle: {
-		fontSize: 14,
-		fontWeight: "600",
-		marginBottom: 4,
-	},
+  section: {
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
 
-	securityText: {
-		fontSize: 12,
-		opacity: 0.7,
-		lineHeight: 16,
-	},
+  securityRow: {
+    flexDirection: "row",
+    gap: 12,
+  },
 
-	/* Key card */
-	keyHeader: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		marginBottom: 12,
-	},
+  securityTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#f9fafb",
+    marginBottom: 4,
+  },
 
-	keyNameRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 8,
-	},
+  securityText: {
+    fontSize: 12,
+    color: "#9ca3af",
+    lineHeight: 16,
+  },
 
-	statusPill: {
-		paddingHorizontal: 8,
-		paddingVertical: 3,
-		borderRadius: 999,
-	},
+  list: {
+    paddingHorizontal: 16,
+    gap: 12,
+  },
 
-	keyRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 10,
-		paddingHorizontal: 12,
-		paddingVertical: 10,
-		borderRadius: 12,
-		marginBottom: 8,
-	},
+  keyHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
 
-	keyValue: {
-		flex: 1,
-		fontSize: 12,
-		fontFamily: "monospace",
-		opacity: 0.8,
-	},
+  keyNameRow: {
+    flexDirection: "row",
+    gap: 8,
+    alignItems: "center",
+  },
 
-	metaRow: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		marginBottom: 12,
-	},
+  keyName: {
+    color: "#f9fafb",
+    fontWeight: "600",
+  },
 
-	metaText: {
-		fontSize: 11,
-		opacity: 0.6,
-	},
+  statusPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+  },
 
-	/* Actions */
-	actionsRow: {
-		flexDirection: "row",
-		gap: 8,
-	},
+  keyRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    marginBottom: 8,
+  },
 
-	rotateBtn: {
-		flex: 1,
-		paddingVertical: 8,
-		borderRadius: 10,
-		backgroundColor: "rgba(255,255,255,0.06)",
-		flexDirection: "row",
-		gap: 6,
-		alignItems: "center",
-		justifyContent: "center",
-	},
+  keyValue: {
+    flex: 1,
+    fontFamily: "monospace",
+    color: "#9ca3af",
+    fontSize: 12,
+  },
 
-	revokeBtn: {
-		flex: 1,
-		paddingVertical: 8,
-		borderRadius: 10,
-		backgroundColor: "rgba(239,68,68,0.15)",
-		flexDirection: "row",
-		gap: 6,
-		alignItems: "center",
-		justifyContent: "center",
-	},
+  actionsRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
 
-	actionText: {
-		fontSize: 12,
-		fontWeight: "500",
-	},
+  rotateBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    flexDirection: "row",
+    gap: 6,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
-	/* Modals */
-	modalOverlay: {
-		flex: 1,
-		backgroundColor: "rgba(0,0,0,0.5)",
-		justifyContent: "center",
-		padding: 16,
-	},
+  revokeBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: "rgba(239,68,68,0.15)",
+    flexDirection: "row",
+    gap: 6,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
-	modal: {
-		padding: 16,
-	},
+  actionText: {
+    fontSize: 12,
+    color: "#e5e7eb",
+  },
 
-	modalHeader: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		marginBottom: 12,
-	},
+  revokeText: {
+    fontSize: 12,
+    color: "#ef4444",
+  },
 
-	modalTitle: {
-		fontSize: 16,
-		fontWeight: "600",
-	},
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    justifyContent: "center",
+    padding: 16,
+  },
 
-	input: {
-		height: 44,
-		borderRadius: 12,
-		paddingHorizontal: 12,
-		fontSize: 14,
-		marginBottom: 12,
-	},
+  modal: {
+    padding: 16,
+    borderRadius: 20,
+  },
 
-	createBtn: {
-		height: 44,
-		borderRadius: 12,
-		alignItems: "center",
-		justifyContent: "center",
-	},
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
 
-	revokeHeader: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 10,
-		marginBottom: 12,
-	},
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#f9fafb",
+  },
 
-	revokeText: {
-		fontSize: 13,
-		opacity: 0.7,
-		lineHeight: 18,
-		marginBottom: 16,
-	},
+  input: {
+    height: 44,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    color: "#f9fafb",
+    marginBottom: 12,
+  },
 
-	revokeActions: {
-		flexDirection: "row",
-		gap: 8,
-	},
+  createBtn: {
+    height: 46,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
-	cancelBtn: {
-		flex: 1,
-		height: 44,
-		borderRadius: 12,
-		backgroundColor: "rgba(255,255,255,0.08)",
-		alignItems: "center",
-		justifyContent: "center",
-	},
+  createBtnText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
 
-	confirmBtn: {
-		flex: 1,
-		height: 44,
-		borderRadius: 12,
-		alignItems: "center",
-		justifyContent: "center",
-	},
+  revokeHeader: {
+    flexDirection: "row",
+    gap: 10,
+    alignItems: "center",
+    marginBottom: 12,
+  },
+
+  revokeWarning: {
+    fontSize: 13,
+    color: "#9ca3af",
+    lineHeight: 18,
+    marginBottom: 16,
+  },
+
+  revokeActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+
+  cancelBtn: {
+    flex: 1,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  cancelText: {
+    color: "#e5e7eb",
+  },
+
+  confirmBtn: {
+    flex: 1,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: "#ef4444",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  confirmText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
 });

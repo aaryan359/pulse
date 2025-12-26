@@ -9,7 +9,7 @@ export const toastConfig = {
 		return (
 			<View
 				{...pan.panHandlers}
-				pointerEvents='box-none'
+				pointerEvents='auto'
 				style={{
 					position: "absolute",
 					top: 15,
@@ -69,7 +69,7 @@ export const toastConfig = {
 		return (
 			<View
 				{...pan.panHandlers}
-				pointerEvents='box-none'
+				pointerEvents='auto'
 				style={{
 					position: "absolute",
 					top: 10,
@@ -112,7 +112,7 @@ export const toastConfig = {
 		return (
 			<View
 				{...pan.panHandlers}
-				pointerEvents='box-none'
+				pointerEvents='auto'
 				style={{
 					position: "absolute",
 					top: 10,
