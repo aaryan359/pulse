@@ -54,8 +54,9 @@ export const GlassCard = forwardRef<View, GlassCardProps>(
           styles.container,
           {
             backgroundColor: colors.glass,
-            borderColor: colors.glassBorder,
+            borderColor: "#2f2f35",
             borderWidth: 1,
+
             borderRadius: 20, // Fixed value instead of colors.radius.xl
             shadowColor: colors.glassShadow,
           },

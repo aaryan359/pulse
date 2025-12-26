@@ -11,7 +11,6 @@ import { router } from "expo-router";
 import { Bell, ChevronRight, CreditCard, FileText, Gauge, HelpCircle, KeySquare, LogOut, Moon, Sun, User } from "lucide-react-native";
 import Toast from "react-native-toast-message";
 
-
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { selectCurrentUser } from "@/redux/slices/user/user.selector";
 import { fetchCurrentUser } from "@/redux/slices/user/user.thunk";
@@ -279,9 +278,9 @@ const styles = StyleSheet.create({
 	sectionLabel: {
 		fontSize: 11,
 		letterSpacing: 1,
-		opacity: 0.6,
+		color: "#9ca3af", // neutral gray
 		marginBottom: 8,
-		fontWeight: "600",
+		fontWeight: "700",
 	},
 
 	row: {
@@ -291,6 +290,7 @@ const styles = StyleSheet.create({
 		paddingVertical: 12,
 		borderRadius: 14,
 	},
+	thresholdRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 10 },
 
 	rowLeft: {
 		flexDirection: "row",
@@ -306,11 +306,12 @@ const styles = StyleSheet.create({
 	rowSubtitle: {
 		fontSize: 12,
 		marginTop: 2,
+		color: "#9ca3af",
 	},
 
 	rowRight: {
 		fontSize: 12,
-		opacity: 0.7,
+		color: "#9ca3af",
 	},
 
 	thresholdHeader: {
@@ -322,35 +323,28 @@ const styles = StyleSheet.create({
 
 	systemPill: {
 		paddingHorizontal: 8,
-		paddingVertical: 2,
+		paddingVertical: 5,
 		borderRadius: 999,
-		backgroundColor: "rgba(255,255,255,0.08)",
+		backgroundColor: "#1f2933",
 	},
 
 	systemPillText: {
 		fontSize: 11,
-		opacity: 0.6,
-	},
-
-	thresholdRow: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		paddingVertical: 10,
+		color: "#9ca3af",
+		fontWeight: "500",
 	},
 
 	thresholdValue: {
 		fontSize: 12,
 		fontFamily: "monospace",
-		opacity: 0.6,
+		color: "#9ca3af",
 	},
 
 	thresholdNote: {
 		fontSize: 11,
-		opacity: 0.5,
+		color: "#6b7280",
 		marginTop: 6,
 	},
-
 	logoutBtn: {
 		flexDirection: "row",
 		gap: 8,
@@ -359,6 +353,7 @@ const styles = StyleSheet.create({
 		paddingVertical: 14,
 		borderRadius: 20,
 		borderWidth: 1,
+		backgroundColor: "rgba(239,68,68,0.08)", // subtle red tint
 	},
 
 	logoutText: {
@@ -369,7 +364,7 @@ const styles = StyleSheet.create({
 	version: {
 		textAlign: "center",
 		fontSize: 11,
-		opacity: 0.5,
+		color: "#6b7280",
 		marginTop: 8,
 	},
 });

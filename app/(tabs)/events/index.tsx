@@ -52,7 +52,6 @@ export default function EventsScreen() {
 				<ScrollView
 					horizontal
 					showsHorizontalScrollIndicator={false}
-					
 					contentContainerStyle={styles.filters}>
 					{[
 						{ key: null, label: "All Events" },
@@ -87,20 +86,20 @@ export default function EventsScreen() {
 				</ScrollView>
 
 				{/* Events */}
-				<ScrollView style={styles.list}
-          refreshControl={
-              <RefreshControl
-                refreshing={loading}
-                onRefresh={onRefresh}
-                tintColor={colors.primary}
-              />
-            }
-        >
+				<ScrollView
+					style={styles.list}
+					refreshControl={
+						<RefreshControl
+							refreshing={loading}
+							onRefresh={onRefresh}
+							tintColor={colors.primary}
+						/>
+					}>
 					{events.map((event) => {
 						const color = getSeverityColor(event.severity);
 
 						return (
-							<GlassCard key={event.id}>
+							<GlassCard style={{marginVertical:5}} key={event.id}>
 								<View style={styles.row}>
 									<View style={{ flex: 1 }}>
 										<View style={styles.rowBetween}>
@@ -176,6 +175,7 @@ const styles = StyleSheet.create({
 
 	row: {
 		flexDirection: "row",
+		marginVertical:5,
 		gap: 12,
 	},
 	iconWrap: {

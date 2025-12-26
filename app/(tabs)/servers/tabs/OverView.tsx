@@ -47,22 +47,22 @@ export default function OverviewTab({ snapshot }: OverviewTabProps) {
 				<Text style={styles.title}>System Info</Text>
 
 				<InfoRow
-					icon={<Cpu size={14} />}
+					icon={<Cpu size={14} color={"gray"} />}
 					label='Core Count'
 					value={`${snapshot?.cpuCores ?? "--"} cores`}
 				/>
 				<InfoRow
-					icon={<Clock size={14} />}
+					icon={<Clock size={14} color={"gray"} />}
 					label='Uptime'
 					value={snapshot ? formatUptime(snapshot.uptimeSeconds) : "--"}
 				/>
 				<InfoRow
-					icon={<HardDrive size={14} />}
+					icon={<HardDrive size={14} color={"gray"} />}
 					label='Agent Version'
 					value={`v${ "--"}`}
 				/>
 				<InfoRow
-					icon={<Box size={14} />}
+					icon={<Box size={14} color={"gray"} />}
 					label='Containers'
 					value={`${snapshot?.containerCount ?? "--"}`}
 				/>
@@ -72,12 +72,12 @@ export default function OverviewTab({ snapshot }: OverviewTabProps) {
 			<GlassCard>
 				<Text style={styles.title}>Agent Commands</Text>
 				<ActionRow
-					icon={<RotateCcw size={16} />}
+					icon={<RotateCcw size={16}  color={"gray"} />}
 					title='Restart All Containers'
 					subtitle='Gracefully restart all containers'
 				/>
 				<ActionRow
-					icon={<Trash2 size={16} />}
+					icon={<Trash2 size={16} color={"gray"} />}
 					title='Clear Docker Cache'
 					subtitle='Remove unused images and volumes'
 				/>
@@ -128,7 +128,7 @@ function ActionRow({ icon, title, subtitle }: ActionRowProps) {
 
 const styles = StyleSheet.create({
 	wrap: { paddingHorizontal: 16, gap: 12 },
-	title: { fontSize: 14, fontWeight: "600", marginBottom: 12 },
+	title: { fontSize: 14, fontWeight: "600", marginBottom: 12 ,color:'white' },
 	headerRow: {
 		flexDirection: "row",
 		justifyContent: "space-between",

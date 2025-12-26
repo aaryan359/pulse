@@ -113,7 +113,7 @@ export const darkTheme = {
     secondaryForeground: "#F1F3F9",
 
     muted: "#364054",
-    mutedForeground: "#9CA3AF",
+    mutedForeground: "#cfd5e0ff",
 
     accent: "#22D3EE",
     accentForeground: "#F1F3F9",
@@ -127,7 +127,7 @@ export const darkTheme = {
 
     /* Liquid Glass System - Dark */
     glass: "rgba(12, 18, 29, 1)",
-    glassBorder: "rgba(255,255,255,0.05)",
+    glassBorder: "rgba(211, 206, 206, 0.05)",
     glassHighlight: "rgba(128,149,191,0.2)",
     glassSurface: "rgba(38,47,66,0.6)",
     glassInset: "rgba(255,255,255,0.02)",

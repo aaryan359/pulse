@@ -8,21 +8,27 @@ import { MetricRing } from "@/components/ui/MetricRing";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import { useTheme } from "@/theme/useTheme";
-import { formatTimeAgo, mockEvents } from "@/utils/mock-data";
+import { formatTimeAgo } from "@/utils/mock-data";
 import { AlertTriangle, CheckCircle, Package, Server } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
 import { useAppSelector } from "@/redux/hooks";
+import { selectRecentEvents } from "@/redux/slices/event/event.selector";
 import { selectServers } from "@/redux/slices/server/server.selectors";
+
+
 
 export default function DashboardScreen() {
 	const { colors } = useTheme();
 	const servers = useAppSelector(selectServers);
 
+	const events = useAppSelector(selectRecentEvents);
+
 	const topServers = servers.slice(0, 5);
 
 	const [rateLimitShown, setRateLimitShown] = useState(false);
+
 	const [stats, setStats] = useState({
 		onlineServers: 0,
 		offlineServers: 0,
@@ -216,7 +222,7 @@ export default function DashboardScreen() {
 							</TouchableOpacity>
 						</View>
 						<View style={styles.eventsList}>
-							{mockEvents.slice(0, 3).map((event: any) => {
+							{events.map((event: any) => {
 								const isCritical = event.severity === "critical";
 								const isWarning = event.severity === "warning";
 								const iconColor = isCritical
@@ -311,20 +317,7 @@ export default function DashboardScreen() {
 										</View>
 									</View>
 
-                        {/* Metrics :TODO implment this */}
-
-                        {/* <View style={styles.serverMetrics}>
-                              <MetricRing
-                                value={server.avgCpuPercent ?? 0}
-                                size="sm"
-                                showValue={false}
-                              />
-                              <MetricRing
-                                value={server.avgMemoryPercent ?? 0}
-                                size="sm"
-                                showValue={false}
-                              />
-                            </View> */}
+									{/* Metrics :TODO implment this */}
 								</View>
 							))}
 						</View>
@@ -391,6 +384,7 @@ const styles = StyleSheet.create({
 	},
 	sectionCard: {
 		gap: 16,
+		
 	},
 	sectionHeader: {
 		flexDirection: "row",
